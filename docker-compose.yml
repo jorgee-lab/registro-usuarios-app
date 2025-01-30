@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  mysql_host:
+    image: mysql:8.0
+    container_name: mysql_host
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: registro
+    ports:
+      - "3306:3306"
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql # Script de inicialización
+      - ./mysql/my.cnf:/etc/my.cnf
+  backend:
+    build: 
+      context: ./backend
+    container_name: registro_backend
+    restart: always
+    depends_on:
+      - mysql_host
+    environment:
+      DB_HOST: mysql_host
+      DB_USER: admin
+      DB_PASSWORD: 1234
+      DB_NAME: registro
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: 
+      context: ./frontend
+    container_name: registro_frontend
+    restart: always
+    ports:
+      - "8080:80"
