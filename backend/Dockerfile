@@ -1,8 +1,13 @@
 # Usar una imagen oficial de Node.js
 FROM node:16
 
-#Agregar herramienta dockerrize para espera de servicio mysql
+#Actualizar y agregar herramienta dockerrize para espera de servicio mysql
 RUN apt-get update && apt-get install -y wget
+COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
+# Espera que MySQL esté disponible antes de correr el servidor
+CMD ["/usr/local/bin/wait-for-it.sh", "mysql_host:3306", "--timeout=30", "--strict", "--", "node", "server.js"]
 
 # Configurar el directorio de trabajo en el contenedor
 WORKDIR /app
