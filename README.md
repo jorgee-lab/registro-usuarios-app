@@ -6,20 +6,22 @@ Este proyecto es una aplicación web simple que permite registrar usuarios y alm
 
 ## 📂 Estructura del proyecto
 
-registro-usuarios/
+```
+registro-app/
 ├── backend/
-│ ├── Dockerfile
-│ ├── package.json
-│ ├── server.js
-│ └── wait-for-it.sh
-├── frontend/
-│ ├── Dockerfile
-│ └── ...
-├── mysql/
-│ ├── init.sql
-│ └── my.cnf (opcional)
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── server.js
+│   ├── wait-for-it.sh
+├── db/
+│   ├── Dockerfile
+│   ├── init.sql
+│   └── .env
+├── nginx/
+│   └── default.conf
 ├── docker-compose.yml
 └── README.md
+```
 
 ---
 
