@@ -13,11 +13,11 @@ registro-app/
 │   ├── package.json
 │   ├── server.js
 │   ├── wait-for-it.sh
-├── db/
+├── mysql/
 │   ├── Dockerfile
 │   ├── init.sql
 │   └── .env
-├── nginx/
+├── frontend/
 │   └── default.conf
 ├── docker-compose.yml
 └── README.md
