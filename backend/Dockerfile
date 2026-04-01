@@ -1,5 +1,5 @@
 # Usar una imagen oficial de Node.js
-FROM node:16
+FROM node:18
 
 #Actualizar y agregar herramienta dockerrize para espera de servicio mysql
 RUN apt-get update && apt-get install -y wget

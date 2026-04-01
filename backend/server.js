@@ -7,9 +7,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configurar la conexión a la base de datos
+// Configuración DB
 const dbConfig = {
-  host: 'mysql_host', // El nombre del servicio MySQL en docker-compose.yml
+  host: 'mysql_host',
   user: 'admin',
   password: '1234',
   database: 'registro',
@@ -17,58 +17,59 @@ const dbConfig = {
 
 let connection;
 
-// Función para conectar a la base de datos con manejo de reconexión
-function handleConnection() {
-  connection = mysql.createConnection({
-		host: dbConfig.host,
-		user: dbConfig.user,
-		password: dbConfig.password,
-		database: dbConfig.database,
-		multipleStatements: true
-	});
+// 🔁 Nueva función con retry limpio
+function connectWithRetry() {
+  return new Promise((resolve) => {
+    console.log("Intentando conectar a MySQL...");
 
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error conectando a la base de datos:', err);
-      setTimeout(handleConnection, 2000); // Reintenta la conexión después de 2 segundos
-    } else {
-      console.log('Conectado a la base de datos');
-    }
+    const conn = mysql.createConnection(dbConfig);
+
+    conn.connect((err) => {
+      if (err) {
+        console.error("MySQL no está listo, reintentando en 3s...");
+        setTimeout(() => resolve(connectWithRetry()), 3000);
+      } else {
+        console.log("✅ Conectado a MySQL");
+        resolve(conn);
+      }
+    });
   });
+}
 
-  connection.on('error', (err) => {
-    console.error('Error en la conexión a MySQL:', err);
+// 🚀 Arranque controlado
+async function startServer() {
+  connection = await connectWithRetry();
+
+  connection.on('error', async (err) => {
+    console.error('Error en MySQL:', err);
 
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-      console.log('Intentando reconectar...');
-      handleConnection(); // Reconectar automáticamente si la conexión se pierde
+      console.log('Reconectando...');
+      connection = await connectWithRetry();
     } else {
       throw err;
     }
   });
-}
 
-handleConnection();
-
-module.exports = connection;
-
-// Endpoint para registrar un usuario
-app.post("/usuarios", (req, res) => {
+  // Endpoint
+  app.post("/usuarios", (req, res) => {
     const { nombre, correo, edad } = req.body;
 
     const query = "INSERT INTO usuarios (nombre, correo, edad) VALUES (?, ?, ?)";
     connection.query(query, [nombre, correo, edad], (err, result) => {
-        if (err) {
-            console.error("Error al insertar datos:", err);
-            res.status(500).send("Error al registrar el usuario");
-            return;
-        }
-        res.status(200).send("Usuario registrado exitosamente");
+      if (err) {
+        console.error("Error al insertar datos:", err);
+        return res.status(500).send("Error al registrar el usuario");
+      }
+      res.send("Usuario registrado exitosamente");
     });
-});
+  });
 
-// Iniciar el servidor
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  });
+}
+
+// 🔥 Punto de entrada real
+startServer();
