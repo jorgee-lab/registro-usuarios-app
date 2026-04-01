@@ -1,46 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Usuarios</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Usuarios</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h1 {
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #5a67d8;
+}
+
+.mensaje {
+    margin-top: 10px;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+th {
+    background: #667eea;
+    color: white;
+}
+</style>
 </head>
+
 <body>
-    <h1>Registro de Usuarios</h1>
+
+<div class="container">
+    <h1>Registro</h1>
+
     <form id="registro-form">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required><br><br>
-
-        <label for="correo">Correo:</label>
-        <input type="email" id="correo" name="correo" required><br><br>
-
-        <label for="edad">Edad:</label>
-        <input type="number" id="edad" name="edad" required><br><br>
+        <input type="text" id="nombre" placeholder="Nombre" required>
+        <input type="email" id="correo" placeholder="Correo" required>
+        <input type="number" id="edad" placeholder="Edad" required>
 
         <button type="submit">Registrar</button>
     </form>
 
-    <script>
-        document.getElementById("registro-form").addEventListener("submit", async (e) => {
-            e.preventDefault();
+    <button onclick="cargarUsuarios()">👀 Ver usuarios</button>
 
-            const nombre = document.getElementById("nombre").value;
-            const correo = document.getElementById("correo").value;
-            const edad = document.getElementById("edad").value;
+    <div id="mensaje" class="mensaje"></div>
 
-            const response = await fetch("http://localhost:3000/usuarios", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre, correo, edad }),
-            });
+    <table id="tabla" style="display:none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Edad</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-            if (response.ok) {
-                alert("Usuario registrado exitosamente");
-                document.getElementById("registro-form").reset();
-            } else {
-                alert("Error al registrar el usuario");
-            }
-        });
-    </script>
+<script>
+const form = document.getElementById("registro-form");
+const mensaje = document.getElementById("mensaje");
+const tabla = document.getElementById("tabla");
+const tbody = tabla.querySelector("tbody");
+
+// Registrar usuario
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById("nombre").value;
+    const correo = document.getElementById("correo").value;
+    const edad = document.getElementById("edad").value;
+
+    const res = await fetch("http://localhost:3000/usuarios", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ nombre, correo, edad })
+    });
+
+    if (res.ok) {
+        mensaje.textContent = "✅ Usuario registrado";
+        form.reset();
+    } else {
+        mensaje.textContent = "❌ Error";
+    }
+});
+
+// Cargar usuarios
+async function cargarUsuarios() {
+    const res = await fetch("http://localhost:3000/usuarios");
+    const data = await res.json();
+
+    tbody.innerHTML = "";
+
+    data.forEach(user => {
+        const row = `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.nombre}</td>
+                <td>${user.correo}</td>
+                <td>${user.edad}</td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+
+    tabla.style.display = "table";
+}
+</script>
+
 </body>
 </html>

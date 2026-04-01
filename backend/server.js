@@ -51,17 +51,36 @@ async function startServer() {
     }
   });
 
-  // Endpoint
+  // Endpoint para registrar usuario
   app.post("/usuarios", (req, res) => {
-    const { nombre, correo, edad } = req.body;
+  const { nombre, correo, edad } = req.body;
 
-    const query = "INSERT INTO usuarios (nombre, correo, edad) VALUES (?, ?, ?)";
-    connection.query(query, [nombre, correo, edad], (err, result) => {
+  const query = "INSERT INTO usuarios (nombre, correo, edad) VALUES (?, ?, ?)";
+
+  connection.query(query, [nombre, correo, edad], (err, result) => {
+
+    console.log("RESULT:", result);
+    console.log("ERROR:", err);
+
+    if (err) {
+      return res.status(500).json({ mensaje: "Error real", error: err });
+    }
+
+    return res.status(200).json({
+      mensaje: "OK",
+      id: result.insertId
+    });
+  });
+});
+
+  // Obtener usuarios
+  app.get("/usuarios", (req, res) => {
+    connection.query("SELECT * FROM usuarios", (err, results) => {
       if (err) {
-        console.error("Error al insertar datos:", err);
-        return res.status(500).send("Error al registrar el usuario");
+        console.error("Error al obtener usuarios:", err);
+        return res.status(500).send("Error al obtener usuarios");
       }
-      res.send("Usuario registrado exitosamente");
+      res.json(results);
     });
   });
 
